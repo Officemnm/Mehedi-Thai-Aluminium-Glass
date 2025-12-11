@@ -1,5 +1,5 @@
 """
-Aluminium & Glass Shop - Complete Professional Management System
+MEHEDI THAI ALUMINIUM & GLASS - Complete Professional Management System
 Single File Flask Application
 Requirements: flask, flask-login, werkzeug
 """
@@ -142,7 +142,7 @@ def init_default_data():
     settings = read_json(DATABASES['settings'])
     if not settings:
         default_settings = {
-            'shop_name': 'Aluminium & Glass Shop',
+            'shop_name': 'MEHEDI THAI ALUMINIUM & GLASS',
             'shop_address': '123 Business Street, City, Country',
             'shop_phone': '+880 1234 567890',
             'shop_email': 'info@aluminiumglass.com',
@@ -236,7 +236,7 @@ def get_base_template(title, active_page, content, show_sidebar=True):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{title} - Aluminium & Glass Shop</title>
+        <title>{title} - MEHEDI THAI ALUMINIUM & GLASS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -365,7 +365,7 @@ def get_base_template(title, active_page, content, show_sidebar=True):
             <div class="container-fluid">
                 <a class="navbar-brand" href="/dashboard">
                     <i class="fas fa-building me-2"></i>
-                    <strong>Aluminium & Glass Shop</strong>
+                    <strong>MEHEDI THAI ALUMINIUM & GLASS</strong>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
@@ -429,7 +429,7 @@ def get_login_template():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login - Aluminium & Glass Shop</title>
+        <title>Login - MEHEDI THAI ALUMINIUM & GLASS</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
@@ -461,7 +461,7 @@ def get_login_template():
                 <div class="logo">
                     <i class="fas fa-building"></i>
                 </div>
-                <h2>Aluminium & Glass Shop</h2>
+                <h2>MEHEDI THAI ALUMINIUM & GLASS</h2>
                 <p class="text-muted">Professional Management System</p>
             </div>
             
@@ -2564,7 +2564,7 @@ def view_invoice(invoice_id):
                 <div class="col-md-6 text-end">
                     <h5>From:</h5>
                     <address>
-                        <strong>Aluminium & Glass Shop</strong><br>
+                        <strong>MEHEDI THAI ALUMINIUM & GLASS</strong><br>
                         123 Business Street, City, Country<br>
                         Phone: +880 1234 567890<br>
                         Email: info@aluminiumglass.com
@@ -2783,7 +2783,7 @@ def print_invoice(invoice_id):
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 50%;">
-                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'Aluminium & Glass Shop')}</h1>
+                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}</h1>
                         <p style="margin: 5px 0;">{settings.get('shop_address', '123 Business Street, City, Country')}</p>
                         <p style="margin: 5px 0;">Phone: {settings.get('shop_phone', '+880 1234 567890')}</p>
                         <p style="margin: 5px 0;">Email: {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
@@ -2900,7 +2900,7 @@ def print_invoice(invoice_id):
             
             <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #666;">
                 <p>Thank you for your business!</p>
-                <p>{settings.get('shop_name', 'Aluminium & Glass Shop')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
+                <p>{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
             </div>
         </div>
         
@@ -3896,7 +3896,7 @@ def view_quotation(quotation_id):
                 <div class="col-md-6 text-end">
                     <h5>From:</h5>
                     <address>
-                        <strong>Aluminium & Glass Shop</strong><br>
+                        <strong>MEHEDI THAI ALUMINIUM & GLASS</strong><br>
                         123 Business Street, City, Country<br>
                         Phone: +880 1234 567890<br>
                         Email: info@aluminiumglass.com
@@ -4103,7 +4103,7 @@ def print_quotation(quotation_id):
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 50%;">
-                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'Aluminium & Glass Shop')}</h1>
+                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}</h1>
                         <p style="margin: 5px 0;">{settings.get('shop_address', '123 Business Street, City, Country')}</p>
                         <p style="margin: 5px 0;">Phone: {settings.get('shop_phone', '+880 1234 567890')}</p>
                         <p style="margin: 5px 0;">Email: {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
@@ -4204,7 +4204,7 @@ def print_quotation(quotation_id):
             
             <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #666;">
                 <p>Thank you for considering our quotation!</p>
-                <p>{settings.get('shop_name', 'Aluminium & Glass Shop')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
+                <p>{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
             </div>
         </div>
         
@@ -5267,7 +5267,7 @@ def settings():
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Shop Name *</label>
                         <input type="text" class="form-control" name="shop_name" 
-                               value="{current_settings.get('shop_name', 'Aluminium & Glass Shop')}" required>
+                               value="{current_settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}" required>
                     </div>
                     
                     <div class="col-md-6 mb-3">
@@ -5501,7 +5501,7 @@ if __name__ == '__main__':
     init_default_data()
     
     print("=" * 70)
-    print("ALUMINIUM & GLASS SHOP MANAGEMENT SYSTEM")
+    print("MEHEDI THAI ALUMINIUM & GLASS MANAGEMENT SYSTEM")
     print("=" * 70)
     print("✓ Database initialized")
     print("✓ Default data loaded")
@@ -5520,4 +5520,5 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print("\n\nServer stopped by user.")
     except Exception as e:
+
         print(f"\nError: {e}")
