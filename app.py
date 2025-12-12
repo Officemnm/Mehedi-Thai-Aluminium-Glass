@@ -1768,7 +1768,7 @@ def delete_customer(customer_id):
         flash(f'Error deleting customer: {str(e)}', 'danger')
     
     return redirect(url_for('customers'))
-    @app.route('/invoices')
+@app.route('/invoices')
 @login_required
 def invoices():
     invoices_data = read_json(DATABASES['invoices'])
