@@ -1,5 +1,5 @@
 """
-MEHEDI THAI ALUMINIUM & GLASS - Complete Professional Management System
+Aluminium & Glass Shop - Complete Professional Management System
 Single File Flask Application
 Requirements: flask, flask-login, werkzeug
 """
@@ -142,7 +142,7 @@ def init_default_data():
     settings = read_json(DATABASES['settings'])
     if not settings:
         default_settings = {
-            'shop_name': 'MEHEDI THAI ALUMINIUM & GLASS',
+            'shop_name': 'Aluminium & Glass Shop',
             'shop_address': '123 Business Street, City, Country',
             'shop_phone': '+880 1234 567890',
             'shop_email': 'info@aluminiumglass.com',
@@ -236,7 +236,7 @@ def get_base_template(title, active_page, content, show_sidebar=True):
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>{title} - MEHEDI THAI ALUMINIUM & GLASS</title>
+        <title>{title} - Aluminium & Glass Shop</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -365,11 +365,11 @@ def get_base_template(title, active_page, content, show_sidebar=True):
             <div class="container-fluid">
                 <a class="navbar-brand" href="/dashboard">
                     <i class="fas fa-building me-2"></i>
-                    <strong>MEHEDI THAI ALUMINIUM & GLASS</strong>
+                    <strong>Aluminium & Glass Shop</strong>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
-                </button>
+                </a>
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
@@ -429,7 +429,7 @@ def get_login_template():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login - MEHEDI THAI ALUMINIUM & GLASS</title>
+        <title>Login - Aluminium & Glass Shop</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
@@ -461,7 +461,7 @@ def get_login_template():
                 <div class="logo">
                     <i class="fas fa-building"></i>
                 </div>
-                <h2>MEHEDI THAI ALUMINIUM & GLASS</h2>
+                <h2>Aluminium & Glass Shop</h2>
                 <p class="text-muted">Professional Management System</p>
             </div>
             
@@ -514,7 +514,11 @@ def get_login_template():
     </html>
     """
 
-# Routes
+# Initialize database and default data before first request
+with app.app_context():
+    init_database()
+    init_default_data()
+    # Routes
 @app.route('/')
 def index():
     if current_user.is_authenticated:
@@ -531,18 +535,25 @@ def login():
         password = request.form.get('password')
         
         users = read_json(DATABASES['users'])
+        user_found = False
         for user in users:
-            if user['username'] == username and check_password_hash(user['password'], password):
-                if user.get('is_active', True):
-                    user_obj = User(user)
-                    login_user(user_obj)
-                    flash('Login successful!', 'success')
-                    return redirect(url_for('dashboard'))
+            if user['username'] == username:
+                user_found = True
+                if check_password_hash(user['password'], password):
+                    if user.get('is_active', True):
+                        user_obj = User(user)
+                        login_user(user_obj)
+                        flash('Login successful!', 'success')
+                        return redirect(url_for('dashboard'))
+                    else:
+                        flash('Account is inactive', 'danger')
+                        break
                 else:
-                    flash('Account is inactive', 'danger')
+                    flash('Invalid password', 'danger')
                     break
         
-        flash('Invalid username or password', 'danger')
+        if not user_found:
+            flash('Username not found', 'danger')
     
     return render_template_string(get_login_template())
 
@@ -1757,8 +1768,7 @@ def delete_customer(customer_id):
         flash(f'Error deleting customer: {str(e)}', 'danger')
     
     return redirect(url_for('customers'))
-
-@app.route('/invoices')
+    @app.route('/invoices')
 @login_required
 def invoices():
     invoices_data = read_json(DATABASES['invoices'])
@@ -2191,262 +2201,262 @@ def new_invoice():
                     </div>
                 </div>
                 
-                <!-- Payment Information -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h5><i class="fas fa-money-bill-wave me-2"></i>Payment Information</h5>
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Amount Paid (৳)</label>
-                        <input type="number" class="form-control" id="paidAmount" name="paid" 
-                               step="0.01" min="0" value="0" onchange="updateBalance()">
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Payment Method</label>
-                        <select class="form-select" name="payment_method">
-                            <option value="cash">Cash</option>
-                            <option value="bank">Bank Transfer</option>
-                            <option value="card">Credit Card</option>
-                            <option value="check">Check</option>
-                            <option value="mobile">Mobile Banking</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Due Date</label>
-                        <input type="date" class="form-control" name="due_date" 
-                               value="{(datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')}">
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label class="form-label">Balance Due (৳)</label>
-                        <input type="number" class="form-control" id="balanceDue" readonly value="0">
-                    </div>
-                </div>
-                
-                <!-- Notes -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <label class="form-label">Notes</label>
-                        <textarea class="form-control" name="notes" rows="3" placeholder="Any additional notes for this invoice..."></textarea>
-                    </div>
-                </div>
-                
-                <!-- Hidden Fields -->
-                <input type="hidden" id="subtotalInput" name="subtotal" value="0">
-                <input type="hidden" id="taxInput" name="tax" value="0">
-                <input type="hidden" id="totalInput" name="total" value="0">
-                
-                <!-- Submit Buttons -->
-                <div class="row">
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary px-5">
-                            <i class="fas fa-save me-1"></i>Save Invoice
-                        </button>
-                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
-                            <i class="fas fa-redo me-1"></i>Reset
-                        </button>
-                        <button type="button" class="btn btn-success" onclick="saveAndPrint()">
-                            <i class="fas fa-print me-1"></i>Save & Print
-                        </button>
-                    </div>
-                </div>
-            </form>
+    <!-- Payment Information -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h5><i class="fas fa-money-bill-wave me-2"></i>Payment Information</h5>
         </div>
     </div>
     
-    <!-- Product Modal for Selection -->
-    <div class="modal fade" id="productModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Select Product</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Code</th>
-                                    <th>Name</th>
-                                    <th>Stock</th>
-                                    <th>Price</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {"".join([f'''
-                                <tr>
-                                    <td>{p.get('code', '')}</td>
-                                    <td>{p.get('name', '')}</td>
-                                    <td>{p.get('stock', 0)} {p.get('unit', 'pcs')}</td>
-                                    <td>৳{p.get('selling_price', 0):.2f}</td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-primary" onclick="selectProduct('{p['id']}', '{p.get('name', '')}', {p.get('selling_price', 0)})">
-                                            Select
-                                        </button>
-                                    </td>
-                                </tr>
-                                ''' for p in products if p.get('stock', 0) > 0])}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <div class="row">
+        <div class="col-md-3 mb-3">
+            <label class="form-label">Amount Paid (৳)</label>
+            <input type="number" class="form-control" id="paidAmount" name="paid" 
+                   step="0.01" min="0" value="0" onchange="updateBalance()">
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <label class="form-label">Payment Method</label>
+            <select class="form-select" name="payment_method">
+                <option value="cash">Cash</option>
+                <option value="bank">Bank Transfer</option>
+                <option value="card">Credit Card</option>
+                <option value="check">Check</option>
+                <option value="mobile">Mobile Banking</option>
+            </select>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" name="due_date" 
+                   value="{(datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d')}">
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <label class="form-label">Balance Due (৳)</label>
+            <input type="number" class="form-control" id="balanceDue" readonly value="0">
         </div>
     </div>
     
-    <script>
-        let currentRow = null;
-        let productOptions = {json.dumps([{'id': p['id'], 'name': p.get('name', ''), 'price': p.get('selling_price', 0), 'stock': p.get('stock', 0), 'unit': p.get('unit', 'pcs')} for p in products if p.get('stock', 0) > 0])};
-        
-        // Initialize with one empty row
-        $(document).ready(function() {{
-            addItemRow();
-            loadCustomerDetails('{customer_id}');
-        }});
-        
-        function loadCustomerDetails(customerId) {{
-            if (!customerId) return;
-            
-            $.getJSON('/api/customer/' + customerId, function(data) {{
-                if (data) {{
-                    $('#customerName').val(data.name);
-                    $('#customerPhone').val(data.phone);
-                    $('#customerAddress').val(data.address);
-                }}
-            }});
-        }}
-        
-        function addItemRow() {{
-            const rowId = 'row_' + Date.now();
-            const row = `
-                <tr id="${{rowId}}">
-                    <td>
-                        <button type="button" class="btn btn-sm btn-outline-primary mb-1" onclick="showProductModal('${{rowId}}')">
-                            <i class="fas fa-search"></i> Select Product
-                        </button>
-                        <input type="hidden" name="item[]" id="item_${{rowId}}">
-                        <div>
-                            <strong id="productName_${{rowId}}">Select a product...</strong><br>
-                            <small class="text-muted" id="productStock_${{rowId}}"></small>
-                        </div>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control" name="quantity[]" 
-                               id="quantity_${{rowId}}" step="0.01" min="0.01" 
-                               onchange="calculateRowTotal('${{rowId}}')" required>
-                    </td>
-                    <td>
-                        <input type="number" class="form-control" name="price[]" 
-                               id="price_${{rowId}}" step="0.01" min="0" 
-                               onchange="calculateRowTotal('${{rowId}}')" required>
-                    </td>
-                    <td>
-                        <div class="input-group">
-                            <span class="input-group-text">৳</span>
-                            <input type="number" class="form-control" id="total_${{rowId}}" 
-                                   readonly step="0.01">
-                        </div>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="removeItemRow('${{rowId}}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-            $('#itemsBody').append(row);
-        }}
-        
-        function showProductModal(rowId) {{
-            currentRow = rowId;
-            new bootstrap.Modal(document.getElementById('productModal')).show();
-        }}
-        
-        function selectProduct(productId, productName, price) {{
-            if (!currentRow) return;
-            
-            const product = productOptions.find(p => p.id === productId);
-            if (product) {{
-                $('#item_' + currentRow).val(productId);
-                $('#productName_' + currentRow).text(productName);
-                $('#productStock_' + currentRow).text('Stock: ' + product.stock + ' ' + product.unit);
-                $('#price_' + currentRow).val(price);
-                $('#quantity_' + currentRow).focus();
-                
-                bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
-                calculateRowTotal(currentRow);
-            }}
-        }}
-        
-        function calculateRowTotal(rowId) {{
-            const quantity = parseFloat($('#quantity_' + rowId).val()) || 0;
-            const price = parseFloat($('#price_' + rowId).val()) || 0;
-            const total = quantity * price;
-            
-            $('#total_' + rowId).val(total.toFixed(2));
-            calculateTotal();
-        }}
-        
-        function calculateTotal() {{
-            let subtotal = 0;
-            
-            $('input[id^="total_"]').each(function() {{
-                subtotal += parseFloat($(this).val()) || 0;
-            }});
-            
-            const taxRate = parseFloat($('#taxRate').val()) || 0;
-            const tax = subtotal * (taxRate / 100);
-            const total = subtotal + tax;
-            
-            $('#subtotal').text(subtotal.toFixed(2));
-            $('#taxAmount').text(tax.toFixed(2));
-            $('#totalAmount').text(total.toFixed(2));
-            
-            $('#subtotalInput').val(subtotal);
-            $('#taxInput').val(tax);
-            $('#totalInput').val(total);
-            
-            updateBalance();
-        }}
-        
-        function updateBalance() {{
-            const total = parseFloat($('#totalInput').val()) || 0;
-            const paid = parseFloat($('#paidAmount').val()) || 0;
-            const balance = total - paid;
-            
-            $('#balanceDue').val(balance.toFixed(2));
-        }}
-        
-        function removeItemRow(rowId) {{
-            $('#' + rowId).remove();
-            calculateTotal();
-        }}
-        
-        function resetForm() {{
-            if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {{
-                $('#itemsBody').empty();
-                addItemRow();
-                $('#customerSelect').val('');
-                $('#customerName, #customerPhone, #customerAddress').val('');
-                $('#paidAmount').val(0);
-                $('textarea[name="notes"]').val('');
-                calculateTotal();
-            }}
-        }}
-        
-        function saveAndPrint() {{
-            // First save the form, then redirect to print
-            $('#invoiceForm').submit();
-        }}
-    </script>
-    """
+    <!-- Notes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" name="notes" rows="3" placeholder="Any additional notes for this invoice..."></textarea>
+        </div>
+    </div>
+    
+    <!-- Hidden Fields -->
+    <input type="hidden" id="subtotalInput" name="subtotal" value="0">
+    <input type="hidden" id="taxInput" name="tax" value="0">
+    <input type="hidden" id="totalInput" name="total" value="0">
+    
+    <!-- Submit Buttons -->
+    <div class="row">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary px-5">
+                <i class="fas fa-save me-1"></i>Save Invoice
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                <i class="fas fa-redo me-1"></i>Reset
+            </button>
+            <button type="button" class="btn btn-success" onclick="saveAndPrint()">
+                <i class="fas fa-print me-1"></i>Save & Print
+            </button>
+        </div>
+    </div>
+</form>
+</div>
+</div>
+
+<!-- Product Modal for Selection -->
+<div class="modal fade" id="productModal" tabindex="-1">
+<div class="modal-dialog modal-lg">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title">Select Product</h5>
+<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+<div class="table-responsive">
+<table class="table table-hover">
+<thead>
+<tr>
+<th>Code</th>
+<th>Name</th>
+<th>Stock</th>
+<th>Price</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+{"""""".join([f'''
+<tr>
+<td>{p.get('code', '')}</td>
+<td>{p.get('name', '')}</td>
+<td>{p.get('stock', 0)} {p.get('unit', 'pcs')}</td>
+<td>৳{p.get('selling_price', 0):.2f}</td>
+<td>
+<button type="button" class="btn btn-sm btn-primary" onclick="selectProduct('{p['id']}', '{p.get('name', '')}', {p.get('selling_price', 0)})">
+Select
+</button>
+</td>
+</tr>
+''' for p in products if p.get('stock', 0) > 0])}
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+let currentRow = null;
+let productOptions = {json.dumps([{'id': p['id'], 'name': p.get('name', ''), 'price': p.get('selling_price', 0), 'stock': p.get('stock', 0), 'unit': p.get('unit', 'pcs')} for p in products if p.get('stock', 0) > 0])};
+
+// Initialize with one empty row
+$(document).ready(function() {{
+addItemRow();
+loadCustomerDetails('{customer_id}');
+}});
+
+function loadCustomerDetails(customerId) {{
+if (!customerId) return;
+
+$.getJSON('/api/customer/' + customerId, function(data) {{
+if (data) {{
+$('#customerName').val(data.name);
+$('#customerPhone').val(data.phone);
+$('#customerAddress').val(data.address);
+}}
+}});
+}}
+
+function addItemRow() {{
+const rowId = 'row_' + Date.now();
+const row = `
+<tr id="${{rowId}}">
+<td>
+<button type="button" class="btn btn-sm btn-outline-primary mb-1" onclick="showProductModal('${{rowId}}')">
+<i class="fas fa-search"></i> Select Product
+</button>
+<input type="hidden" name="item[]" id="item_${{rowId}}">
+<div>
+<strong id="productName_${{rowId}}">Select a product...</strong><br>
+<small class="text-muted" id="productStock_${{rowId}}"></small>
+</div>
+</td>
+<td>
+<input type="number" class="form-control" name="quantity[]" 
+id="quantity_${{rowId}}" step="0.01" min="0.01" 
+onchange="calculateRowTotal('${{rowId}}')" required>
+</td>
+<td>
+<input type="number" class="form-control" name="price[]" 
+id="price_${{rowId}}" step="0.01" min="0" 
+onchange="calculateRowTotal('${{rowId}}')" required>
+</td>
+<td>
+<div class="input-group">
+<span class="input-group-text">৳</span>
+<input type="number" class="form-control" id="total_${{rowId}}" 
+readonly step="0.01">
+</div>
+</td>
+<td>
+<button type="button" class="btn btn-sm btn-danger" onclick="removeItemRow('${{rowId}}')">
+<i class="fas fa-trash"></i>
+</button>
+</td>
+</tr>
+`;
+$('#itemsBody').append(row);
+}}
+
+function showProductModal(rowId) {{
+currentRow = rowId;
+new bootstrap.Modal(document.getElementById('productModal')).show();
+}}
+
+function selectProduct(productId, productName, price) {{
+if (!currentRow) return;
+
+const product = productOptions.find(p => p.id === productId);
+if (product) {{
+$('#item_' + currentRow).val(productId);
+$('#productName_' + currentRow).text(productName);
+$('#productStock_' + currentRow).text('Stock: ' + product.stock + ' ' + product.unit);
+$('#price_' + currentRow).val(price);
+$('#quantity_' + currentRow).focus();
+
+bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
+calculateRowTotal(currentRow);
+}}
+}}
+
+function calculateRowTotal(rowId) {{
+const quantity = parseFloat($('#quantity_' + rowId).val()) || 0;
+const price = parseFloat($('#price_' + rowId).val()) || 0;
+const total = quantity * price;
+
+$('#total_' + rowId).val(total.toFixed(2));
+calculateTotal();
+}}
+
+function calculateTotal() {{
+let subtotal = 0;
+
+$('input[id^="total_"]').each(function() {{
+subtotal += parseFloat($(this).val()) || 0;
+}});
+
+const taxRate = parseFloat($('#taxRate').val()) || 0;
+const tax = subtotal * (taxRate / 100);
+const total = subtotal + tax;
+
+$('#subtotal').text(subtotal.toFixed(2));
+$('#taxAmount').text(tax.toFixed(2));
+$('#totalAmount').text(total.toFixed(2));
+
+$('#subtotalInput').val(subtotal);
+$('#taxInput').val(tax);
+$('#totalInput').val(total);
+
+updateBalance();
+}}
+
+function updateBalance() {{
+const total = parseFloat($('#totalInput').val()) || 0;
+const paid = parseFloat($('#paidAmount').val()) || 0;
+const balance = total - paid;
+
+$('#balanceDue').val(balance.toFixed(2));
+}}
+
+function removeItemRow(rowId) {{
+$('#' + rowId).remove();
+calculateTotal();
+}}
+
+function resetForm() {{
+if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {{
+$('#itemsBody').empty();
+addItemRow();
+$('#customerSelect').val('');
+$('#customerName, #customerPhone, #customerAddress').val('');
+$('#paidAmount').val(0);
+$('textarea[name="notes"]').val('');
+calculateTotal();
+}}
+}}
+
+function saveAndPrint() {{
+// First save the form, then redirect to print
+$('#invoiceForm').submit();
+}}
+</script>
+"""
     
     return render_template_string(get_base_template('Create Invoice', 'invoices', content))
 
@@ -2464,7 +2474,6 @@ def get_customer_details(customer_id):
             'email': customer.get('email', '')
         })
     return jsonify({}), 404
-    # Continue from previous code...
 
 @app.route('/invoices/view/<invoice_id>')
 @login_required
@@ -2564,7 +2573,7 @@ def view_invoice(invoice_id):
                 <div class="col-md-6 text-end">
                     <h5>From:</h5>
                     <address>
-                        <strong>MEHEDI THAI ALUMINIUM & GLASS</strong><br>
+                        <strong>Aluminium & Glass Shop</strong><br>
                         123 Business Street, City, Country<br>
                         Phone: +880 1234 567890<br>
                         Email: info@aluminiumglass.com
@@ -2783,7 +2792,7 @@ def print_invoice(invoice_id):
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 50%;">
-                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}</h1>
+                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'Aluminium & Glass Shop')}</h1>
                         <p style="margin: 5px 0;">{settings.get('shop_address', '123 Business Street, City, Country')}</p>
                         <p style="margin: 5px 0;">Phone: {settings.get('shop_phone', '+880 1234 567890')}</p>
                         <p style="margin: 5px 0;">Email: {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
@@ -2900,7 +2909,7 @@ def print_invoice(invoice_id):
             
             <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #666;">
                 <p>Thank you for your business!</p>
-                <p>{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
+                <p>{settings.get('shop_name', 'Aluminium & Glass Shop')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
             </div>
         </div>
         
@@ -3896,7 +3905,7 @@ def view_quotation(quotation_id):
                 <div class="col-md-6 text-end">
                     <h5>From:</h5>
                     <address>
-                        <strong>MEHEDI THAI ALUMINIUM & GLASS</strong><br>
+                        <strong>Aluminium & Glass Shop</strong><br>
                         123 Business Street, City, Country<br>
                         Phone: +880 1234 567890<br>
                         Email: info@aluminiumglass.com
@@ -4103,7 +4112,7 @@ def print_quotation(quotation_id):
             <table style="width: 100%;">
                 <tr>
                     <td style="width: 50%;">
-                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}</h1>
+                        <h1 style="color: #2c3e50; margin: 0;">{settings.get('shop_name', 'Aluminium & Glass Shop')}</h1>
                         <p style="margin: 5px 0;">{settings.get('shop_address', '123 Business Street, City, Country')}</p>
                         <p style="margin: 5px 0;">Phone: {settings.get('shop_phone', '+880 1234 567890')}</p>
                         <p style="margin: 5px 0;">Email: {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
@@ -4204,7 +4213,7 @@ def print_quotation(quotation_id):
             
             <div style="text-align: center; margin-top: 30px; font-size: 10px; color: #666;">
                 <p>Thank you for considering our quotation!</p>
-                <p>{settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
+                <p>{settings.get('shop_name', 'Aluminium & Glass Shop')} | {settings.get('shop_phone', '+880 1234 567890')} | {settings.get('shop_email', 'info@aluminiumglass.com')}</p>
             </div>
         </div>
         
@@ -5148,7 +5157,8 @@ def edit_user(user_id):
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Status</label>
                         <div class="form-check form-switch mt-2">
-                            <input class="form-check-input" type="checkbox" name="is_active" {"checked" if user.get('is_active', True) else ""}>
+                            <input class="form-check-input" type="checkbox" name="is_active" 
+                                   {"checked" if user.get('is_active', True) else ""}>
                             <label class="form-check-label">Active User</label>
                         </div>
                     </div>
@@ -5159,7 +5169,9 @@ def edit_user(user_id):
                             {"".join([f'''
                             <div class="col-md-4 mb-2">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="permissions" value="{perm[0]}" id="perm_{perm[0]}" {"checked" if perm[0] in user.get('permissions', []) else ""}>
+                                    <input class="form-check-input" type="checkbox" name="permissions" 
+                                           value="{perm[0]}" id="perm_{perm[0]}"
+                                           {"checked" if perm[0] in user.get('permissions', []) else ""}>
                                     <label class="form-check-label" for="perm_{perm[0]}">
                                         {perm[1]}
                                     </label>
@@ -5169,14 +5181,10 @@ def edit_user(user_id):
                         </div>
                     </div>
                     
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Created At</label>
-                        <input type="text" class="form-control" readonly value="{user.get('created_at', 'N/A')[:16]}">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Created By</label>
-                        <input type="text" class="form-control" readonly value="{user.get('created_by', 'System')}">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Created On</label>
+                        <input type="text" class="form-control" readonly 
+                               value="{user.get('created_at', 'N/A')[:16]}">
                     </div>
                     
                     <div class="col-12 mt-4">
@@ -5199,12 +5207,12 @@ def edit_user(user_id):
 @login_required
 @permission_required('manage_users')
 def delete_user(user_id):
+    # Prevent deleting own user
+    if user_id == current_user.id:
+        flash('You cannot delete your own account!', 'danger')
+        return redirect(url_for('user_management'))
+    
     try:
-        # Prevent deleting own account
-        if user_id == current_user.id:
-            flash('You cannot delete your own account!', 'danger')
-            return redirect(url_for('user_management'))
-        
         users = read_json(DATABASES['users'])
         users = [u for u in users if u['id'] != user_id]
         write_json(DATABASES['users'], users)
@@ -5219,36 +5227,31 @@ def delete_user(user_id):
 @login_required
 @permission_required('manage_settings')
 def settings():
-    settings_data = read_json(DATABASES['settings'])
-    if not settings_data:
-        settings_data = [{}]
-    
-    current_settings = settings_data[0]
+    settings_list = read_json(DATABASES['settings'])
+    current_settings = settings_list[0] if settings_list else {}
     
     if request.method == 'POST':
         try:
-            updated_settings = {
+            new_settings = {
                 'shop_name': request.form.get('shop_name'),
                 'shop_address': request.form.get('shop_address'),
                 'shop_phone': request.form.get('shop_phone'),
                 'shop_email': request.form.get('shop_email'),
-                'tax_rate': float(request.form.get('tax_rate', 5)),
-                'currency': request.form.get('currency'),
-                'invoice_prefix': request.form.get('invoice_prefix'),
-                'quotation_prefix': request.form.get('quotation_prefix'),
-                'logo_url': request.form.get('logo_url'),
+                'tax_rate': float(request.form.get('tax_rate', 0)),
+                'currency': request.form.get('currency', 'BDT'),
+                'invoice_prefix': request.form.get('invoice_prefix', 'INV'),
+                'quotation_prefix': request.form.get('quotation_prefix', 'QTN'),
                 'updated_at': datetime.now().isoformat(),
                 'updated_by': current_user.id
             }
             
-            # Keep created_at if exists
+            # Update settings (keep existing created_at)
             if 'created_at' in current_settings:
-                updated_settings['created_at'] = current_settings['created_at']
+                new_settings['created_at'] = current_settings['created_at']
             else:
-                updated_settings['created_at'] = datetime.now().isoformat()
-            
-            write_json(DATABASES['settings'], [updated_settings])
-            
+                new_settings['created_at'] = datetime.now().isoformat()
+                
+            write_json(DATABASES['settings'], [new_settings])
             flash('Settings updated successfully!', 'success')
             return redirect(url_for('settings'))
             
@@ -5257,268 +5260,143 @@ def settings():
     
     content = f"""
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2><i class="fas fa-cog me-2"></i>Settings</h2>
+        <h2><i class="fas fa-cog me-2"></i>System Settings</h2>
     </div>
     
-    <div class="card">
-        <div class="card-body">
-            <form method="POST" id="settingsForm">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Shop Name *</label>
-                        <input type="text" class="form-control" name="shop_name" 
-                               value="{current_settings.get('shop_name', 'MEHEDI THAI ALUMINIUM & GLASS')}" required>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Shop Phone *</label>
-                        <input type="text" class="form-control" name="shop_phone" 
-                               value="{current_settings.get('shop_phone', '+880 1234 567890')}" required>
-                    </div>
-                    
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Shop Address *</label>
-                        <textarea class="form-control" name="shop_address" rows="2" required>{current_settings.get('shop_address', '123 Business Street, City, Country')}</textarea>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Shop Email *</label>
-                        <input type="email" class="form-control" name="shop_email" 
-                               value="{current_settings.get('shop_email', 'info@aluminiumglass.com')}" required>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Currency</label>
-                        <select class="form-select" name="currency">
-                            <option value="BDT" {"selected" if current_settings.get('currency', 'BDT') == 'BDT' else ""}>Bangladeshi Taka (৳)</option>
-                            <option value="USD" {"selected" if current_settings.get('currency', 'BDT') == 'USD' else ""}>US Dollar ($)</option>
-                            <option value="EUR" {"selected" if current_settings.get('currency', 'BDT') == 'EUR' else ""}>Euro (€)</option>
-                            <option value="GBP" {"selected" if current_settings.get('currency', 'BDT') == 'GBP' else ""}>British Pound (£)</option>
-                            <option value="INR" {"selected" if current_settings.get('currency', 'BDT') == 'INR' else ""}>Indian Rupee (₹)</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Tax Rate (%) *</label>
-                        <input type="number" class="form-control" name="tax_rate" step="0.1" min="0" max="100" 
-                               value="{current_settings.get('tax_rate', 5)}" required>
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Invoice Prefix</label>
-                        <input type="text" class="form-control" name="invoice_prefix" 
-                               value="{current_settings.get('invoice_prefix', 'INV')}">
-                    </div>
-                    
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Quotation Prefix</label>
-                        <input type="text" class="form-control" name="quotation_prefix" 
-                               value="{current_settings.get('quotation_prefix', 'QTN')}">
-                    </div>
-                    
-                    <div class="col-md-12 mb-3">
-                        <label class="form-label">Logo URL</label>
-                        <input type="text" class="form-control" name="logo_url" 
-                               value="{current_settings.get('logo_url', '/static/logo.png')}" 
-                               placeholder="URL to your shop logo">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Created At</label>
-                        <input type="text" class="form-control" readonly 
-                               value="{current_settings.get('created_at', 'N/A')[:16]}">
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Last Updated</label>
-                        <input type="text" class="form-control" readonly 
-                               value="{current_settings.get('updated_at', 'N/A')[:16] if current_settings.get('updated_at') else 'N/A'}">
-                    </div>
-                    
-                    <div class="col-12 mt-4">
-                        <button type="submit" class="btn btn-primary px-4">
-                            <i class="fas fa-save me-1"></i>Save Settings
-                        </button>
-                    </div>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">General Settings</h5>
                 </div>
-            </form>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Shop Name *</label>
+                                <input type="text" class="form-control" name="shop_name" 
+                                       value="{current_settings.get('shop_name', '')}" required>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Shop Address *</label>
+                                <textarea class="form-control" name="shop_address" rows="3" required>{current_settings.get('shop_address', '')}</textarea>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone Number *</label>
+                                <input type="text" class="form-control" name="shop_phone" 
+                                       value="{current_settings.get('shop_phone', '')}" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" name="shop_email" 
+                                       value="{current_settings.get('shop_email', '')}" required>
+                            </div>
+                            
+                            <div class="col-12"><hr></div>
+                            <h5 class="mb-3">Financial Settings</h5>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Default Tax Rate (%)</label>
+                                <input type="number" class="form-control" name="tax_rate" 
+                                       step="0.01" min="0" max="100" 
+                                       value="{current_settings.get('tax_rate', 0)}">
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Currency Symbol</label>
+                                <input type="text" class="form-control" name="currency" 
+                                       value="{current_settings.get('currency', 'BDT')}">
+                            </div>
+                            
+                            <div class="col-12"><hr></div>
+                            <h5 class="mb-3">Prefix Settings</h5>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Invoice Prefix</label>
+                                <input type="text" class="form-control" name="invoice_prefix" 
+                                       value="{current_settings.get('invoice_prefix', 'INV')}">
+                                <div class="form-text">e.g., INV-20230001</div>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Quotation Prefix</label>
+                                <input type="text" class="form-control" name="quotation_prefix" 
+                                       value="{current_settings.get('quotation_prefix', 'QTN')}">
+                                <div class="form-text">e.g., QTN-20230001</div>
+                            </div>
+                            
+                            <div class="col-12 mt-3">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    <i class="fas fa-save me-1"></i>Save Settings
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    </div>
-    
-    <!-- Database Management -->
-    <div class="card mt-4">
-        <div class="card-header">
-            <h5 class="mb-0">Database Management</h5>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <i class="fas fa-database fa-3x text-primary mb-3"></i>
-                            <h5>Backup Database</h5>
-                            <p class="text-muted">Create a backup of all data</p>
-                            <button class="btn btn-outline-primary" onclick="backupDatabase()">
-                                <i class="fas fa-save me-1"></i>Create Backup
-                            </button>
-                        </div>
-                    </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">System Info</h5>
                 </div>
-                
-                <div class="col-md-4 mb-3">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <i class="fas fa-redo fa-3x text-warning mb-3"></i>
-                            <h5>Reset Demo Data</h5>
-                            <p class="text-muted">Reset to default demo data</p>
-                            <button class="btn btn-outline-warning" onclick="resetDemoData()">
-                                <i class="fas fa-redo me-1"></i>Reset Data
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-md-4 mb-3">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
-                            <h5>Clear All Data</h5>
-                            <p class="text-muted">Delete all data (irreversible)</p>
-                            <button class="btn btn-outline-danger" onclick="clearAllData()">
-                                <i class="fas fa-trash me-1"></i>Clear Data
-                            </button>
-                        </div>
-                    </div>
+                <div class="card-body">
+                    <p><strong>Status:</strong> <span class="badge bg-success">Online</span></p>
+                    <p><strong>Database:</strong> JSON (Local File System)</p>
+                    <p><strong>Python Version:</strong> 3.x</p>
+                    <p><strong>Flask Version:</strong> Latest</p>
                 </div>
             </div>
         </div>
     </div>
-    
-    <script>
-        function backupDatabase() {{
-            if (confirm('Create a backup of all database files?')) {{
-                window.location.href = '/api/database/backup';
-            }}
-        }}
-        
-        function resetDemoData() {{
-            if (confirm('Reset all data to default demo data? This will delete all current data!')) {{
-                window.location.href = '/api/database/reset';
-            }}
-        }}
-        
-        function clearAllData() {{
-            if (confirm('Are you sure you want to clear ALL data? This action cannot be undone!')) {{
-                if (confirm('This will delete ALL invoices, customers, products, etc. Are you absolutely sure?')) {{
-                    window.location.href = '/api/database/clear';
-                }}
-            }}
-        }}
-    </script>
     """
     
     return render_template_string(get_base_template('Settings', 'settings', content))
 
-# API Routes for database management
-@app.route('/api/database/backup')
-@login_required
-@permission_required('manage_settings')
-def backup_database():
-    try:
-        backup_folder = os.path.join('database', 'backups')
-        os.makedirs(backup_folder, exist_ok=True)
-        
-        backup_file = os.path.join(backup_folder, f'backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json')
-        
-        backup_data = {}
-        for db_name, db_path in DATABASES.items():
-            backup_data[db_name] = read_json(db_path)
-        
-        with open(backup_file, 'w', encoding='utf-8') as f:
-            json.dump(backup_data, f, indent=4)
-        
-        flash(f'Database backup created: {backup_file}', 'success')
-    except Exception as e:
-        flash(f'Error creating backup: {str(e)}', 'danger')
-    
-    return redirect(url_for('settings'))
+# Error Handlers
+@app.errorhandler(404)
+def page_not_found(e):
+    if not current_user.is_authenticated:
+        return redirect(url_for('login'))
+    return render_template_string(get_base_template('404 Not Found', 'dashboard', 
+        '<div class="text-center py-5"><h1>404</h1><p>Page not found</p><a href="/dashboard" class="btn btn-primary">Go Dashboard</a></div>')), 404
 
-@app.route('/api/database/reset')
-@login_required
-@permission_required('manage_settings')
-def reset_database():
-    try:
-        # Initialize database with default data
+@app.errorhandler(500)
+def server_error(e):
+    return render_template_string(get_base_template('500 Error', 'dashboard', 
+        f'<div class="text-center py-5"><h1>500</h1><p>Internal Server Error</p><pre>{str(e)}</pre></div>')), 500
+
+# Main execution
+if __name__ == '__main__':
+    # Ensure database folder exists
+    if not os.path.exists(DB_FOLDER):
+        try:
+            os.makedirs(DB_FOLDER)
+        except OSError:
+            pass # Handle permission errors if any
+    
+    # Initialize DB on start to ensure admin exists
+    with app.app_context():
         init_database()
         init_default_data()
         
-        flash('Database reset to default demo data successfully!', 'success')
-    except Exception as e:
-        flash(f'Error resetting database: {str(e)}', 'danger')
-    
-    return redirect(url_for('settings'))
+        # Debug: Print admin status to console for verification
+        users = read_json(DATABASES['users'])
+        admin = next((u for u in users if u['username'] == 'admin'), None)
+        if admin:
+            print("------------------------------------------------")
+            print("SYSTEM READY")
+            print("Default Admin Login:")
+            print("Username: admin")
+            print("Password: admin123")
+            print("------------------------------------------------")
 
-@app.route('/api/database/clear')
-@login_required
-@permission_required('manage_settings')
-def clear_database():
-    try:
-        # Clear all data files
-        for db_name, db_path in DATABASES.items():
-            write_json(db_path, [])
-        
-        # Re-initialize default data
-        init_default_data()
-        
-        flash('All data cleared successfully! Default data restored.', 'success')
-    except Exception as e:
-        flash(f'Error clearing database: {str(e)}', 'danger')
-    
-    return redirect(url_for('settings'))
-
-# API endpoints for data
-@app.route('/api/products')
-@login_required
-def api_products():
-    products = read_json(DATABASES['products'])
-    return jsonify(products)
-
-@app.route('/api/customers')
-@login_required
-def api_customers():
-    customers = read_json(DATABASES['customers'])
-    return jsonify(customers)
-
-@app.route('/api/invoices')
-@login_required
-def api_invoices():
-    invoices = read_json(DATABASES['invoices'])
-    return jsonify(invoices)
-
-# Run the application
-if __name__ == '__main__':
-    init_database()
-    init_default_data()
-    
-    print("=" * 70)
-    print("MEHEDI THAI ALUMINIUM & GLASS MANAGEMENT SYSTEM")
-    print("=" * 70)
-    print("✓ Database initialized")
-    print("✓ Default data loaded")
-    print("\n🔗 ACCESS THE SYSTEM AT:")
-    print("   http://localhost:5000")
-    print("   http://127.0.0.1:5000")
-    print("\n👤 ADMIN LOGIN CREDENTIALS:")
-    print("   Username: admin")
-    print("   Password: admin123")
-    print("\n📱 MOBILE READY - Professional Edition")
-    print("=" * 70)
-    print("\n🚀 Starting server... (Press Ctrl+C to stop)\n")
-    
-    try:
-        app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
-    except KeyboardInterrupt:
-        print("\n\nServer stopped by user.")
-    except Exception as e:
-
-        print(f"\nError: {e}")
+    # Run the app
+    # Use environment variable for port (Required for Render)
+    port = int(os.environ.get("PORT", 10000))
+    # Host must be 0.0.0.0 for Render
+    app.run(host='0.0.0.0', port=port, debug=False)
