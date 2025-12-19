@@ -12,37 +12,33 @@ app.secret_key = "mehedi_secret_key"
 USER_LOGIN = "Mehedihasan"
 USER_PASS = "1234"
 
-# ---- প্রফেশনাল PDF ডিজাইন লজিক (আগের রিকোয়ারমেন্ট অনুযায়ী) ----
+# ---- প্রফেশনাল PDF লজিক (হুবহু আগের ডিজাইন) ----
 def generate_pdf(data, doc_type, cust_name, cust_mobile, advance, note):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     
-    # হেডার
+    # হেডার ডিজাইন
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width/2, height - 50, "MEHEDI THAI ALUMINUM & GLASS")
     c.setFont("Helvetica", 9.5)
-    address = "West Side Of The Khartoil Boro Mosjid, Satiash Road, Tongi, Gazipur, 1700."
-    c.drawCentredString(width/2, height - 65, address)
+    c.drawCentredString(width/2, height - 65, "West Side Of The Khartoil Boro Mosjid, Satiash Road, Tongi, Gazipur, 1700.")
     c.setFont("Helvetica-Oblique", 10.5)
-    marketing = "High-quality Thai Aluminum & Glass works with 100% guarantee. Modern design & fast delivery."
-    c.drawCentredString(width/2, height - 82, marketing)
+    c.drawCentredString(width/2, height - 82, "High-quality Thai Aluminum & Glass works with 100% guarantee.")
 
-    # প্রোপাইটর ও মোবাইল (ফিক্সড)
+    # প্রোপাইটর তথ্য
     c.setFont("Helvetica-Bold", 11)
     c.drawString(40, height - 110, "Proprietor: ABDUL HANNAN")
     c.setFont("Helvetica", 10)
-    c.drawString(40, height - 125, "Mobile: +880 1811-179656,  +880 1601-465130")
+    c.drawString(40, height - 125, "Mobile: +880 1811-179656, +880 1601-465130")
     
-    # তারিখ ও নম্বর
+    # ডেট ও নম্বর
     c.setFont("Helvetica-Bold", 10)
     c.drawRightString(555, height - 110, f"Date: {datetime.now().strftime('%d/%m/%Y')}")
     c.drawRightString(555, height - 125, f"{doc_type} No: #200")
-    c.setLineWidth(0.8)
     c.line(40, height - 140, 555, height - 140)
 
-    # কাস্টমার ইনফো
-    c.setFont("Helvetica-Bold", 10)
+    # কাস্টমার
     c.drawString(40, height - 160, f"Customer Name: {cust_name}")
     c.drawString(40, height - 175, f"Mobile: {cust_mobile}")
 
@@ -56,7 +52,6 @@ def generate_pdf(data, doc_type, cust_name, cust_mobile, advance, note):
     c.drawCentredString((x_coords[2]+x_coords[3])/2, curr_y - 14, "QTY")
     c.drawCentredString((x_coords[3]+x_coords[4])/2, curr_y - 14, "RATE")
     c.drawCentredString((x_coords[4]+x_coords[5])/2, curr_y - 14, "TOTAL")
-    
     curr_y -= 20
     c.line(40, curr_y, 555, curr_y)
 
@@ -76,144 +71,82 @@ def generate_pdf(data, doc_type, cust_name, cust_mobile, advance, note):
         
         curr_y = text_y - 5
         if item['desc']:
-            # তীর এবং ব্র্যাকেট লজিক
-            c.setLineWidth(0.6); c.line(70, curr_y, 70, curr_y-5) # Arrow
-            c.setFont("Helvetica", 10.5)
+            # বিবরণ
             lines = item['desc'].split('\n')
             list_y = curr_y - 15
-            start_l_y = list_y + 10
             max_w = 0
+            c.setFont("Helvetica", 10.5)
             for line in lines:
                 c.drawString(75, list_y, line)
                 w = c.stringWidth(line, "Helvetica", 10.5)
                 if w > max_w: max_w = w
                 list_y -= 14
-            # ব্র্যাকেট আঁকা (Ultra Thin 0.3)
-            c.setLineWidth(0.3); c.setStrokeColorRGB(0.3,0.3,0.3)
-            c.line(65, start_l_y, 60, start_l_y); c.line(60, start_l_y, 60, list_y+5); c.line(60, list_y+5, 65, list_y+5) # Left [
-            c.line(75+max_w+5, start_l_y, 75+max_w+10, start_l_y); c.line(75+max_w+10, start_l_y, 75+max_w+10, list_y+5); c.line(75+max_w+10, list_y+5, 75+max_w+5, list_y+5) # Right ]
-            c.setStrokeColorRGB(0,0,0)
+            # চিকন ব্র্যাকেট
+            c.setLineWidth(0.3); c.setStrokeColorRGB(0.4, 0.4, 0.4)
+            c.rect(65, list_y + 10, max_w + 15, (text_y - list_y - 15), stroke=1, fill=0)
+            c.setStrokeColorRGB(0, 0, 0)
             curr_y = list_y - 5
         else: curr_y -= 10
 
-    # টেবিল বর্ডার
+    # টেবিল বর্ডার (একটানে খাড়া দাগ)
+    c.setLineWidth(1)
     for x in x_coords: c.line(x, table_top, x, curr_y)
-    c.line(40, table_top, 555, table_top); c.line(40, curr_y, 555, curr_y)
+    c.line(40, table_top, 555, table_top)
+    c.line(40, curr_y, 555, curr_y)
 
-    # সামারি বক্স
+    # হিসাব বক্স
     summary_y = curr_y - 30
-    c.rect(400, summary_y, 155, 22); c.setFont("Helvetica-Bold", 10)
-    c.drawString(405, summary_y+7, "Grand Total:"); c.drawRightString(550, summary_y+7, f"{grand_total:,.0f} Tk")
+    c.rect(400, summary_y, 155, 22)
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(405, summary_y + 7, "Grand Total:")
+    c.drawRightString(550, summary_y + 7, f"{grand_total:,.0f} Tk")
     
     if doc_type == "Invoice":
-        summary_y -= 22; c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Advance:"); c.drawRightString(550, summary_y+7, f"{advance:,.0f} Tk")
-        summary_y -= 22; c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Due Amount:"); c.drawRightString(550, summary_y+7, f"{grand_total-advance:,.0f} Tk")
+        summary_y -= 22
+        c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Advance:"); c.drawRightString(550, summary_y+7, f"{advance:,.0f} Tk")
+        summary_y -= 22
+        c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Due Amount:"); c.drawRightString(550, summary_y+7, f"{grand_total-advance:,.0f} Tk")
 
     if note:
-        c.rect(40, summary_y, 320, 40); c.setFont("Helvetica-Bold", 9); c.drawString(45, summary_y+25, "Note:"); c.setFont("Helvetica", 9); c.drawString(45, summary_y+10, note)
+        c.rect(40, summary_y-45, 320, 40); c.drawString(45, summary_y-15, "Note:"); c.setFont("Helvetica", 9); c.drawString(45, summary_y-30, note)
 
-    c.line(40, 60, 160, 60); c.drawString(50, 45, "Customer Signature")
+    # সিগনেচার
+    c.line(40, 60, 160, 60); c.setFont("Helvetica", 9); c.drawString(50, 45, "Customer Signature")
     c.line(435, 60, 555, 60); c.drawRightString(545, 45, "Authorized Signature")
     
     c.save()
     buffer.seek(0)
     return buffer
 
-# ---- HTML টেমপ্লেটসমূহ ----
-BASE_HTML = """
+# ---- HTML UI Components ----
+HEADER = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mehedi Thai Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #f4f7f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .sidebar { height: 100vh; background: #2c3e50; color: white; position: fixed; width: 250px; }
-        .content { margin-left: 250px; padding: 20px; }
-        .card { border: none; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-primary { background: #3498db; border: none; }
-        @media (max-width: 768px) { .sidebar { width: 100%; height: auto; position: relative; } .content { margin-left: 0; } }
+        body { background: #f8f9fa; }
+        .sidebar { height: 100vh; background: #212529; color: white; position: fixed; width: 240px; padding: 20px; }
+        .main-content { margin-left: 240px; padding: 30px; }
+        .card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-radius: 12px; }
+        @media (max-width: 768px) { .sidebar { width: 100%; height: auto; position: relative; } .main-content { margin-left: 0; } }
     </style>
 </head>
 <body>
-    {% if session.logged_in %}
-    <div class="sidebar p-3">
-        <h3>Mehedi Thai</h3>
-        <hr>
-        <ul class="nav nav-pills flex-column mb-auto">
-            <li class="nav-item"><a href="/dashboard" class="nav-link text-white">Dashboard</a></li>
-            <li><a href="/create/Invoice" class="nav-link text-white">Create Invoice</a></li>
-            <li><a href="/create/Quotation" class="nav-link text-white">Create Quotation</a></li>
-            <li><a href="/logout" class="nav-link text-white mt-5">Logout</a></li>
-        </ul>
-    </div>
-    {% endif %}
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-</body>
-</html>
 """
 
-LOGIN_HTML = """
-{% extends "base" %}
-{% block content %}
-<div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
-    <div class="card p-4" style="width: 350px;">
-        <h2 class="text-center mb-4">Login</h2>
-        <form method="POST">
-            <div class="mb-3"><input type="text" name="user" class="form-control" placeholder="Username" required></div>
-            <div class="mb-3"><input type="password" name="pass" class="form-control" placeholder="Password" required></div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
+SIDEBAR = """
+    <div class="sidebar">
+        <h3>Mehedi Thai</h3><hr>
+        <nav class="nav flex-column">
+            <a class="nav-link text-white" href="/dashboard">🏠 Dashboard</a>
+            <a class="nav-link text-white" href="/create/Invoice">🧾 Create Invoice</a>
+            <a class="nav-link text-white" href="/create/Quotation">📄 Create Quotation</a>
+            <a class="nav-link text-white mt-5" href="/logout">🚪 Logout</a>
+        </nav>
     </div>
-</div>
-{% endblock %}
-"""
-
-DASHBOARD_HTML = """
-{% extends "base" %}
-{% block content %}
-<h2>Welcome, Mehedi Hasan</h2>
-<div class="row mt-4">
-    <div class="col-md-4"><div class="card p-3 bg-white text-center"><h5>Total Sales</h5><h3>0 Tk</h3></div></div>
-    <div class="col-md-4"><div class="card p-3 bg-white text-center"><h5>Invoices</h5><h3>0</h3></div></div>
-    <div class="col-md-4"><div class="card p-3 bg-white text-center"><h5>Quotations</h5><h3>0</h3></div></div>
-</div>
-{% endblock %}
-"""
-
-CREATE_HTML = """
-{% extends "base" %}
-{% block content %}
-<h2>Create {{ doc_type }}</h2>
-<form method="POST" class="card p-4 mt-3">
-    <div class="row">
-        <div class="col-md-6 mb-3"><label>Customer Name</label><input type="text" name="cust_name" class="form-control" required></div>
-        <div class="col-md-6 mb-3"><label>Mobile</label><input type="text" name="cust_mobile" class="form-control" required></div>
-    </div>
-    <hr>
-    <div id="items">
-        <div class="item-row border p-3 mb-3 bg-light rounded">
-            <div class="row">
-                <div class="col-md-4"><label>Title</label><input type="text" name="title[]" class="form-control" required></div>
-                <div class="col-md-2"><label>Sq.Ft</label><input type="number" step="any" name="feet[]" class="form-control"></div>
-                <div class="col-md-2"><label>Pcs</label><input type="number" name="pcs[]" class="form-control"></div>
-                <div class="col-md-2"><label>Rate</label><input type="number" step="any" name="rate[]" class="form-control"></div>
-                <div class="col-md-2"><label>Manual Total</label><input type="number" step="any" name="manual_total[]" class="form-control"></div>
-            </div>
-            <div class="mt-2"><label>Description (Optional)</label><textarea name="desc[]" class="form-control" rows="2"></textarea></div>
-        </div>
-    </div>
-    {% if doc_type == 'Invoice' %}
-    <div class="mb-3"><label>Advance Amount</label><input type="number" name="advance" class="form-control" value="0"></div>
-    {% endif %}
-    <div class="mb-3"><label>Note</label><input type="text" name="note" class="form-control"></div>
-    <button type="submit" class="btn btn-success">Generate PDF</button>
-</form>
-{% endblock %}
 """
 
 # ---- Routes ----
@@ -228,48 +161,90 @@ def login():
         if request.form['user'] == USER_LOGIN and request.form['pass'] == USER_PASS:
             session['logged_in'] = True
             return redirect(url_for('dashboard'))
-    return render_template_string(BASE_HTML.replace('{% block content %}{% endblock %}', LOGIN_HTML))
+        return "Invalid Login"
+    
+    login_form = """
+    <div class="container d-flex justify-content-center align-items-center" style="height: 100vh;">
+        <div class="card p-4" style="width: 350px;">
+            <h3 class="text-center mb-4">Admin Login</h3>
+            <form method="POST">
+                <input type="text" name="user" class="form-control mb-3" placeholder="Username" required>
+                <input type="password" name="pass" class="form-control mb-3" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary w-100">Login</button>
+            </form>
+        </div>
+    </div>
+    """
+    return render_template_string(HEADER + login_form + "</body></html>")
 
 @app.route('/dashboard')
 def dashboard():
     if 'logged_in' not in session: return redirect(url_for('login'))
-    return render_template_string(BASE_HTML.replace('{% block content %}{% endblock %}', DASHBOARD_HTML))
+    content = """
+    <div class="main-content">
+        <h2>Dashboard Overview</h2>
+        <div class="row mt-4">
+            <div class="col-md-4"><div class="card p-4 bg-primary text-white"><h5>Live Sales</h5><h2>0 BDT</h2></div></div>
+            <div class="col-md-4"><div class="card p-4 bg-success text-white"><h5>Orders</h5><h2>0</h2></div></div>
+            <div class="col-md-4"><div class="card p-4 bg-warning text-dark"><h5>Customers</h5><h2>0</h2></div></div>
+        </div>
+    </div>
+    """
+    return render_template_string(HEADER + SIDEBAR + content + "</body></html>")
 
 @app.route('/create/<doc_type>', methods=['GET', 'POST'])
 def create(doc_type):
     if 'logged_in' not in session: return redirect(url_for('login'))
+    
     if request.method == 'POST':
+        # ডাটা প্রসেসিং লজিক
         titles = request.form.getlist('title[]')
         feets = request.form.getlist('feet[]')
         pcss = request.form.getlist('pcs[]')
         rates = request.form.getlist('rate[]')
-        manual_totals = request.form.getlist('manual_total[]')
+        manuals = request.form.getlist('manual[]')
         descs = request.form.getlist('desc[]')
         
-        processed_items = []
+        items = []
         for i in range(len(titles)):
             f = float(feets[i]) if feets[i] else 0
             p = int(pcss[i]) if pcss[i] else 0
             r = float(rates[i]) if rates[i] else 0
-            m = float(manual_totals[i]) if manual_totals[i] else 0
-            
-            total = 0
-            if r > 0:
-                total = (f if f > 0 else p) * r
-            else:
-                total = m
-                
-            processed_items.append({
-                'title': titles[i], 'feet': feets[i], 'pcs': pcss[i], 
-                'rate': rates[i], 'total': total, 'desc': descs[i]
-            })
-            
-        pdf = generate_pdf(processed_items, doc_type, request.form['cust_name'], 
-                           request.form['cust_mobile'], float(request.form.get('advance', 0)), 
-                           request.form['note'])
+            m = float(manuals[i]) if manuals[i] else 0
+            total = (f if f > 0 else p) * r if r > 0 else m
+            items.append({'title': titles[i], 'feet': feets[i], 'pcs': pcss[i], 'rate': rates[i], 'total': total, 'desc': descs[i]})
+        
+        pdf = generate_pdf(items, doc_type, request.form['cname'], request.form['cmob'], float(request.form.get('adv', 0)), request.form['note'])
         return send_file(pdf, download_name=f"{doc_type}.pdf", as_attachment=True)
 
-    return render_template_string(BASE_HTML.replace('{% block content %}{% endblock %}', CREATE_HTML), doc_type=doc_type)
+    form_html = f"""
+    <div class="main-content">
+        <h3>Create New {doc_type}</h3>
+        <form method="POST" class="card p-4 mt-3">
+            <div class="row mb-3">
+                <div class="col-md-6"><label>Customer Name</label><input type="text" name="cname" class="form-control" required></div>
+                <div class="col-md-6"><label>Mobile No</label><input type="text" name="cmob" class="form-control" required></div>
+            </div>
+            <hr>
+            <div id="item-list">
+                <div class="border p-3 mb-3 bg-light rounded">
+                    <div class="row">
+                        <div class="col-md-3"><label>Title</label><input type="text" name="title[]" class="form-control" required></div>
+                        <div class="col-md-2"><label>Sq.Ft</label><input type="number" step="any" name="feet[]" class="form-control"></div>
+                        <div class="col-md-1"><label>Qty</label><input type="number" name="pcs[]" class="form-control"></div>
+                        <div class="col-md-2"><label>Rate</label><input type="number" step="any" name="rate[]" class="form-control"></div>
+                        <div class="col-md-2"><label>Manual Total</label><input type="number" step="any" name="manual[]" class="form-control"></div>
+                    </div>
+                    <textarea name="desc[]" class="form-control mt-2" placeholder="Description (Optional)"></textarea>
+                </div>
+            </div>
+            {"<label>Advance Payment</label><input type='number' name='adv' class='form-control mb-3' value='0'>" if doc_type == 'Invoice' else ""}
+            <label>Notes</label><input type="text" name="note" class="form-control mb-3">
+            <button type="submit" class="btn btn-success w-100">Download {doc_type} PDF</button>
+        </form>
+    </div>
+    """
+    return render_template_string(HEADER + SIDEBAR + form_html + "</body></html>")
 
 @app.route('/logout')
 def logout():
@@ -277,4 +252,5 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+
