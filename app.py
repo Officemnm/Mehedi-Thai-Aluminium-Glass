@@ -5,96 +5,122 @@ from reportlab.lib.pagesizes import A4
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key = "mehedi_thai_2025_secure"
+app.secret_key = "mehedi_thai_final_v10"
 
-# ---- ফিক্সড ডাটা ----
+# ---- ফিক্সড ক্রেডেনশিয়ালস ----
 USER_LOGIN = "Mehedihasan"
 USER_PASS = "1234"
 
-# মেমোরি স্টোরেজ (ডেমো ডাটা)
+# ---- ডাটা স্টোরেজ (মেমোরি) ----
 data_store = {
     "customers": [
-        {"n": "Walk-in Customer", "m": "01xxxxxxxxx"},
-        {"n": "Rahim Uddin", "m": "01712345678"}
+        {"n": "Walk-in Customer", "m": "01xxxxxxxxx"}
     ],
-    "products": ["Thai Window 4\" (Silver)", "Thai Window 4\" (Bronze)", "5mm Clear Glass", "SS Grill Piece", "Sliding Door"]
+    "products": [
+        "Thai Window 4\" (Silver)", 
+        "Thai Window 4\" (Bronze)", 
+        "5mm Clear Glass", 
+        "5mm Blue Mercury Glass", 
+        "Sliding Door", 
+        "SS Grill Piece", 
+        "Thai Mosquito Net"
+    ]
 }
 
-# ---- ১. PDF জেনারেটর (তীর চিহ্ন ফিক্সড) ----
+# ---- হেল্পার ফাংশন ----
+def safe_float(val):
+    if not val: return 0.0
+    try: return float(val)
+    except: return 0.0
+
+def safe_int(val):
+    if not val: return 0
+    try: return int(val)
+    except: return 0
+
+# ---- ১. PDF জেনারেটর (আপনার ফিক্সড ডিজাইন) ----
 def generate_pdf(items_list, doc_type, c_name, c_mob, advance, note):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
     
-    # হেডার
+    # --- হেডার ---
     c.setFont("Helvetica-Bold", 24)
     c.drawCentredString(width/2, height - 50, "MEHEDI THAI ALUMINUM & GLASS")
-    c.setFont("Helvetica", 9.5)
+    c.setFont("Helvetica", 9.5) # ফন্ট সাইজ বাড়ানো হয়েছে
     c.drawCentredString(width/2, height - 65, "West Side Of The Khartoil Boro Mosjid, Satiash Road, Tongi, Gazipur, 1700.")
-    c.setFont("Helvetica-Oblique", 10.5)
+    c.setFont("Helvetica-Oblique", 10.5) # ফন্ট সাইজ বাড়ানো হয়েছে
     c.drawCentredString(width/2, height - 82, "Modern design, durable materials & fast delivery with 100% guarantee.")
 
-    # প্রোপাইটর
+    # --- প্রোপাইটর এবং মোবাইল (পাশাপাশি - ফিক্সড) ---
     c.setFont("Helvetica-Bold", 11)
     c.drawString(40, height - 110, "Proprietor: ABDUL HANNAN")
+    
     c.setFont("Helvetica", 10)
+    # নম্বরগুলো পাশাপাশি
     c.drawString(40, height - 125, "Mobile: +880 1811-179656,  +880 1601-465130,  +880 1967-113830")
     
-    # তারিখ ও নং
+    # প্রোপাইটরের নিচে দাগ (হেডারের নিচে নয়)
+    c.setLineWidth(0.8)
+    c.line(40, height - 135, 555, height - 135)
+
+    # --- তারিখ ও নং ---
+    curr_date = datetime.now().strftime("%d/%m/%Y")
     c.setFont("Helvetica-Bold", 10)
-    c.drawRightString(555, height - 110, f"Date: {datetime.now().strftime('%d/%m/%Y')}")
+    c.drawRightString(555, height - 110, f"Date: {curr_date}")
     c.drawRightString(555, height - 125, f"{doc_type} No: #200")
-    c.line(40, height - 140, 555, height - 140)
 
-    # কাস্টমার
-    c.drawString(40, height - 160, f"Customer Name: {c_name}")
-    c.drawString(40, height - 175, f"Mobile: {c_mob}")
+    # --- কাস্টমার তথ্য ---
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(40, height - 155, f"Customer Name: {c_name}")
+    c.drawString(40, height - 170, f"Mobile: {c_mob}")
 
-    # টেবিল হেডার
+    # --- টেবিল হেডার ---
     x_coords = [40, 310, 370, 420, 480, 555]
-    curr_y = height - 195
+    curr_y = height - 190
     table_top = curr_y
+    
     c.setFont("Helvetica-Bold", 9)
     headers = ["DESCRIPTION", "SQ.FT", "QTY", "RATE", "TOTAL"]
     for i, h in enumerate(headers):
-        c.drawCentredString((x_coords[i]+x_coords[i+1])/2, curr_y-14, h)
+        c.drawCentredString((x_coords[i]+x_coords[i+1])/2, curr_y - 14, h)
     
     curr_y -= 20
-    c.line(40, curr_y, 555, curr_y)
+    c.setLineWidth(1)
+    c.line(40, curr_y, 555, curr_y) # হেডারের নিচের দাগ
 
     grand_total = 0
     
+    # --- আইটেম লুপ ---
     for i, item in enumerate(items_list):
-        # সেইফটি চেক
-        try: total_val = float(item['total'])
-        except: total_val = 0
-        grand_total += total_val
+        t_val = safe_float(item['total'])
+        grand_total += t_val
+        text_y = curr_y - 15
         
-        text_y = curr_y - 18
-        
-        # SL & Title
+        # SL নং টাইটেলের আগে (1. Window)
         c.setFont("Helvetica-Bold", 10)
         c.drawString(45, text_y, f"{i+1}. {item['title']}")
         
-        # Values
+        # মাপ ও হিসাব (Centered)
         c.setFont("Helvetica", 10)
-        c.drawCentredString((x_coords[1]+x_coords[2])/2, text_y, str(item['feet']) if float(item['feet'] or 0)>0 else "-")
-        c.drawCentredString((x_coords[2]+x_coords[3])/2, text_y, str(item['pcs']) if int(item['pcs'] or 0)>0 else "-")
-        c.drawCentredString((x_coords[3]+x_coords[4])/2, text_y, str(item['rate']) if float(item['rate'] or 0)>0 else "-")
-        c.drawRightString(550, text_y, f"{total_val:.0f}")
+        c.drawCentredString((x_coords[1]+x_coords[2])/2, text_y, str(item['feet']) if safe_float(item['feet']) > 0 else "-")
+        c.drawCentredString((x_coords[2]+x_coords[3])/2, text_y, str(item['pcs']) if safe_int(item['pcs']) > 0 else "-")
+        c.drawCentredString((x_coords[3]+x_coords[4])/2, text_y, str(item['rate']) if safe_float(item['rate']) > 0 else "-")
+        c.drawRightString(550, text_y, f"{t_val:.0f}")
         
         curr_y = text_y - 5
         
+        # বিবরণ থাকলে তীর ও ব্র্যাকেট
         if item.get('desc') and item['desc'].strip():
-            # ---- তীর চিহ্ন ডিজাইন (FIXED ARROW) ----
-            arrow_x = 65
+            # --- তীর চিহ্ন (Arrow) ---
+            arrow_x = 60
             c.setLineWidth(0.8)
-            c.line(arrow_x, curr_y, arrow_x, curr_y - 10) # খাড়া দাগ
-            # তীরের মাথা (Head)
+            c.line(arrow_x, curr_y, arrow_x, curr_y - 10) # সোজা দাগ
+            # তীরের মাথা
             c.line(arrow_x, curr_y - 10, arrow_x - 3, curr_y - 7)
             c.line(arrow_x, curr_y - 10, arrow_x + 3, curr_y - 7)
             
-            c.setFont("Helvetica", 10.5)
+            c.setFont("Helvetica", 10.5) # বড় ফন্ট
             lines = item['desc'].split('\n')
             list_y = curr_y - 20
             start_l_y = list_y + 10
@@ -106,42 +132,60 @@ def generate_pdf(items_list, doc_type, c_name, c_mob, advance, note):
                 if w > max_w: max_w = w
                 list_y -= 14
             
-            # চিকন ব্র্যাকেট
-            c.setLineWidth(0.3); c.setStrokeColorRGB(0.4, 0.4, 0.4)
-            # বাম [
-            c.line(60, start_l_y, 55, start_l_y); c.line(55, start_l_y, 55, list_y+5); c.line(55, list_y+5, 60, list_y+5)
-            # ডান ]
+            # --- অতি চিকন ব্র্যাকেট (0.3) ---
+            c.setLineWidth(0.3)
+            c.setStrokeColorRGB(0.3, 0.3, 0.3)
+            
+            # বাম ব্র্যাকেট [
+            c.line(60, start_l_y, 55, start_l_y)
+            c.line(55, start_l_y, 55, list_y+5)
+            c.line(55, list_y+5, 60, list_y+5)
+            
+            # ডান ব্র্যাকেট ]
             rx = 70 + max_w + 10
-            c.line(rx-5, start_l_y, rx, start_l_y); c.line(rx, start_l_y, rx, list_y+5); c.line(rx, list_y+5, rx-5, list_y+5)
+            c.line(rx-5, start_l_y, rx, start_l_y)
+            c.line(rx, start_l_y, rx, list_y+5)
+            c.line(rx, list_y+5, rx-5, list_y+5)
             
             c.setStrokeColorRGB(0,0,0)
             curr_y = list_y - 5
         else:
             curr_y -= 10
 
-    # টেবিল বর্ডার
+    # --- টেবিলের সলিড দাগ (লুপের শেষে) ---
     c.setLineWidth(1)
     for x in x_coords: c.line(x, table_top, x, curr_y)
-    c.line(40, table_top, 555, table_top); c.line(40, curr_y, 555, curr_y)
+    c.line(40, table_top, 555, table_top)
+    c.line(40, curr_y, 555, curr_y)
 
-    # হিসাব
+    # --- হিসাব বক্স (আলাদা) ---
     summary_y = curr_y - 30
-    c.rect(400, summary_y, 155, 22); c.setFont("Helvetica-Bold", 10); c.drawString(405, summary_y+7, "Grand Total:"); c.drawRightString(550, summary_y+7, f"{grand_total:,.0f} Tk")
+    c.setLineWidth(1.2)
+    c.rect(400, summary_y, 155, 25); c.setFont("Helvetica-Bold", 11)
+    c.drawString(405, summary_y+7, "Grand Total:"); c.drawRightString(550, summary_y+7, f"{grand_total:,.0f} Tk")
     
     if doc_type == "Invoice":
-        summary_y -= 22; c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Advance:"); c.drawRightString(550, summary_y+7, f"{advance:,.0f} Tk")
-        summary_y -= 22; c.rect(400, summary_y, 155, 22); c.drawString(405, summary_y+7, "Due:"); c.drawRightString(550, summary_y+7, f"{grand_total-advance:,.0f} Tk")
+        summary_y -= 25; c.rect(400, summary_y, 155, 25)
+        c.drawString(405, summary_y+7, "Advance:"); c.drawRightString(550, summary_y+7, f"{advance:,.0f} Tk")
+        summary_y -= 25; c.rect(400, summary_y, 155, 25)
+        c.drawString(405, summary_y+7, "Due:"); c.drawRightString(550, summary_y+7, f"{grand_total-advance:,.0f} Tk")
 
+    # --- নোট বক্স ---
     if note:
-        c.rect(40, summary_y-10, 320, 35); c.drawString(45, summary_y+10, "Note:"); c.setFont("Helvetica", 9); c.drawString(45, summary_y, note)
+        c.setLineWidth(0.8)
+        c.rect(40, summary_y-10, 320, 40)
+        c.setFont("Helvetica-Bold", 10); c.drawString(45, summary_y+15, "Note:")
+        c.setFont("Helvetica", 9); c.drawString(45, summary_y+2, note)
 
-    c.line(40, 60, 160, 60); c.line(435, 60, 555, 60)
-    c.drawString(45, 45, "Customer Signature"); c.drawRightString(550, 45, "Authorized Signature")
+    # --- সিগনেচার (দাগ উপরে) ---
+    c.setLineWidth(0.8)
+    c.line(40, 60, 160, 60); c.drawString(45, 45, "Customer Signature")
+    c.line(435, 60, 555, 60); c.drawRightString(550, 45, "Authorized Signature")
     
     c.save(); buffer.seek(0)
     return buffer
 
-# ---- ২. HTML UI (Customer First Flow) ----
+# ---- ২. ফ্রন্টএন্ড লেআউট ----
 LAYOUT = """
 <!DOCTYPE html>
 <html lang="en">
@@ -151,14 +195,15 @@ LAYOUT = """
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
-        body { background: #f1f5f9; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f0f2f5; font-family: 'Segoe UI', sans-serif; }
         .sidebar { height: 100vh; background: #0f172a; color: white; position: fixed; width: 250px; }
-        .sidebar a { color: #94a3b8; text-decoration: none; padding: 15px 25px; display: block; border-bottom: 1px solid #1e293b; }
-        .sidebar a:hover { background: #1e293b; color: white; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 15px 25px; display: block; border-bottom: 1px solid #1e293b; }
+        .sidebar a:hover { background: #334155; color: white; }
         .main { margin-left: 250px; padding: 30px; }
         .card { border: none; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 8px; }
-        .step-container { display: none; }
-        .step-container.active { display: block; animation: fadeIn 0.4s; }
+        .step-section { display: none; }
+        .step-section.active { display: block; animation: fadeIn 0.3s; }
+        .wiz-step { display: none; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
@@ -177,44 +222,42 @@ LAYOUT = """
     <div class="main">{% block content %}{% endblock %}</div>
 
     <script>
-        // কাস্টমার ডাটাবেজ (Server থেকে আসবে)
+        // কাস্টমার ডাটাবেজ
         const customers = {{ customers_json | safe }}; 
         
+        // কাস্টমার সিলেকশন লজিক
         function checkCustomer() {
             const inputName = document.getElementById('cust_input').value;
             const found = customers.find(c => c.n === inputName);
             if(found) {
                 document.getElementById('cust_mobile').value = found.m;
-                document.getElementById('cust_status').innerHTML = '<span class="text-success">✔ Existing Customer Found</span>';
-            } else {
-                document.getElementById('cust_status').innerHTML = '<span class="text-primary">+ New Customer</span>';
             }
         }
 
-        function startWizard() {
+        // কাস্টমার কনফার্ম করে আইটেমে যাওয়া
+        function confirmCustomer() {
             const name = document.getElementById('cust_input').value;
             const mobile = document.getElementById('cust_mobile').value;
             
-            if(!name || !mobile) { alert("Please enter Customer Name and Mobile."); return; }
+            if(!name || !mobile) { alert("Customer Name and Mobile are required!"); return; }
             
-            // ডাটা সেট করা
             document.getElementById('final_c_name').value = name;
             document.getElementById('final_c_mob').value = mobile;
             document.getElementById('display_c_name').innerText = name;
             document.getElementById('display_c_mob').innerText = mobile;
 
-            // ভিউ চেঞ্জ
             document.getElementById('section_customer').classList.remove('active');
             document.getElementById('section_items').classList.add('active');
         }
 
-        // আইটেম উইজার্ড লজিক
-        let itemList = [];
-        
+        // আইটেম উইজার্ড স্টেপ কন্ট্রোল
         function showItemStep(id) {
             document.querySelectorAll('.wiz-step').forEach(el => el.style.display = 'none');
             document.getElementById(id).style.display = 'block';
         }
+
+        // আইটেম লিস্ট
+        let itemList = [];
 
         function saveItem() {
             const title = document.getElementById('i_title').value;
@@ -225,7 +268,7 @@ LAYOUT = """
             const manual = parseFloat(document.getElementById('i_manual').value) || 0;
 
             if(!title) { alert("Title is required"); return; }
-            if(feet==0 && pcs==0 && manual==0) { alert("Enter Measurement or Manual Total"); return; }
+            if(feet==0 && pcs==0 && manual==0) { alert("Please enter Feet, Pcs or Manual Total"); return; }
 
             let total = 0;
             if(rate > 0) total = (feet > 0 ? feet : pcs) * rate;
@@ -234,7 +277,7 @@ LAYOUT = """
             itemList.push({title, desc, feet, pcs, rate, total});
             renderTable();
             
-            // রিসেট
+            // ইনপুট রিসেট
             document.getElementById('i_title').value='';
             document.getElementById('i_desc').value='';
             document.getElementById('i_feet').value='';
@@ -242,6 +285,7 @@ LAYOUT = """
             document.getElementById('i_rate').value='';
             document.getElementById('i_manual').value='';
             
+            // প্রথম স্টেপে ফেরত
             showItemStep('step_1');
         }
 
@@ -271,8 +315,8 @@ def login():
         if request.form['user'] == USER_LOGIN and request.form['pass'] == USER_PASS:
             session['logged_in'] = True; return redirect(url_for('dashboard'))
     return render_template_string(LAYOUT.replace('{% block content %}{% endblock %}', """
-        <div class="d-flex justify-content-center mt-5">
-            <div class="card p-5" style="width: 400px;">
+        <div class="d-flex justify-content-center align-items-center" style="height: 80vh;">
+            <div class="card p-5 shadow" style="width: 400px;">
                 <h3 class="text-center mb-4">Admin Login</h3>
                 <form method="POST">
                     <input name="user" class="form-control mb-3" placeholder="Username" required>
@@ -301,28 +345,24 @@ def create(doc_type):
     if request.method == 'POST':
         try:
             items = json.loads(request.form.get('items_data', '[]'))
-            adv = 0
-            if request.form.get('adv'): adv = float(request.form.get('adv'))
-            
+            adv = safe_float(request.form.get('adv'))
             pdf = generate_pdf(items, doc_type, request.form['c_name'], request.form['c_mob'], adv, request.form['note'])
             return send_file(pdf, download_name=f"{doc_type}.pdf", as_attachment=True)
         except Exception as e: return f"Error: {e}"
 
-    # ডাটা প্রিপারেশন
     cust_json = json.dumps(data_store['customers'])
     cust_opts = "".join([f"<option value='{c['n']}'>" for c in data_store['customers']])
     prod_opts = "".join([f"<option value='{p}'>" for p in data_store['products']])
     
     html_content = f"""
-    <div id="section_customer" class="step-container active">
+    <div id="section_customer" class="step-section active">
         <div class="card p-5 shadow-sm" style="max-width: 600px; margin: auto;">
             <h3 class="mb-4 text-center">Step 1: Select Customer</h3>
             
             <div class="mb-3">
                 <label class="form-label">Customer Name</label>
-                <input id="cust_input" class="form-control form-control-lg" list="c_list" oninput="checkCustomer()" placeholder="Search or type new name...">
+                <input id="cust_input" class="form-control form-control-lg" list="c_list" oninput="checkCustomer()" placeholder="Type to search or add new...">
                 <datalist id="c_list">{cust_opts}</datalist>
-                <div id="cust_status" class="form-text">Start typing to search...</div>
             </div>
 
             <div class="mb-4">
@@ -330,47 +370,48 @@ def create(doc_type):
                 <input id="cust_mobile" class="form-control form-control-lg" placeholder="Enter mobile number">
             </div>
 
-            <button onclick="startWizard()" class="btn btn-primary btn-lg w-100">Next: Add Items &rarr;</button>
+            <button onclick="confirmCustomer()" class="btn btn-primary btn-lg w-100">Next: Add Items &rarr;</button>
         </div>
     </div>
 
-    <div id="section_items" class="step-container">
+    <div id="section_items" class="step-section">
         <div class="row">
             <div class="col-md-7">
                 <div class="card p-4 border-primary">
                     <div class="d-flex justify-content-between mb-3">
-                        <h5>Add New Item</h5>
-                        <span class="badge bg-info text-dark">Item Wizard</span>
+                        <h5>Add Item to {doc_type}</h5>
+                        <span class="badge bg-info text-dark">Wizard</span>
                     </div>
 
-                    <div id="step_1" class="wiz-step">
-                        <label>Product Title</label>
-                        <input id="i_title" class="form-control mb-3" list="p_list" placeholder="Select product...">
+                    <div id="step_1" class="wiz-step" style="display:block;">
+                        <label class="form-label fw-bold">1. Select Product</label>
+                        <input id="i_title" class="form-control form-control-lg mb-3" list="p_list" placeholder="Select product...">
                         <datalist id="p_list">{prod_opts}</datalist>
-                        <button class="btn btn-primary w-100" onclick="showItemStep('step_2')">Next: Description</button>
+                        <button class="btn btn-primary w-100" onclick="showItemStep('step_2')">Next: Description &rarr;</button>
                     </div>
 
-                    <div id="step_2" class="wiz-step" style="display:none;">
-                        <label>Description (Optional)</label>
+                    <div id="step_2" class="wiz-step">
+                        <label class="form-label fw-bold">2. Description (Optional)</label>
                         <textarea id="i_desc" class="form-control mb-3" rows="3" placeholder="Enter details..."></textarea>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-secondary w-50" onclick="showItemStep('step_1')">Back</button>
-                            <button class="btn btn-primary w-50" onclick="showItemStep('step_3')">Next: Price</button>
+                            <button class="btn btn-secondary w-50" onclick="showItemStep('step_1')">&larr; Back</button>
+                            <button class="btn btn-primary w-50" onclick="showItemStep('step_3')">Next: Price &rarr;</button>
                         </div>
                     </div>
 
-                    <div id="step_3" class="wiz-step" style="display:none;">
+                    <div id="step_3" class="wiz-step">
+                        <label class="form-label fw-bold">3. Price Calculation</label>
                         <div class="row g-2 mb-3">
                             <div class="col-4"><label>Sq.Ft</label><input id="i_feet" type="number" class="form-control"></div>
                             <div class="col-4"><label>Qty</label><input id="i_pcs" type="number" class="form-control"></div>
                             <div class="col-4"><label>Rate</label><input id="i_rate" type="number" class="form-control"></div>
                         </div>
-                        <label>Manual Total (Optional)</label>
-                        <input id="i_manual" type="number" class="form-control mb-3" placeholder="Use if rate is empty">
+                        <label>Manual Total (Use if Rate is empty)</label>
+                        <input id="i_manual" type="number" class="form-control mb-3" placeholder="Manual amount">
                         
                         <div class="d-flex gap-2">
-                            <button class="btn btn-secondary w-50" onclick="showItemStep('step_2')">Back</button>
-                            <button class="btn btn-success w-50" onclick="saveItem()">+ Add to Invoice</button>
+                            <button class="btn btn-secondary w-50" onclick="showItemStep('step_2')">&larr; Back</button>
+                            <button class="btn btn-success w-50" onclick="saveItem()">+ Add to List</button>
                         </div>
                     </div>
                 </div>
@@ -378,14 +419,14 @@ def create(doc_type):
 
             <div class="col-md-5">
                 <div class="card p-4 h-100">
-                    <h5>{doc_type} Summary</h5>
-                    <div class="alert alert-light border">
-                        <strong>Customer:</strong> <span id="display_c_name"></span><br>
+                    <h5>Preview</h5>
+                    <div class="alert alert-light border p-2 mb-2">
+                        <strong>Name:</strong> <span id="display_c_name"></span><br>
                         <strong>Mobile:</strong> <span id="display_c_mob"></span>
                     </div>
                     
                     <div style="flex-grow: 1; overflow-y: auto; max-height: 300px;">
-                        <table class="table table-sm">
+                        <table class="table table-sm table-striped">
                             <thead><tr><th>#</th><th>Item</th><th>Total</th></tr></thead>
                             <tbody id="item_tbody"></tbody>
                         </table>
@@ -413,13 +454,14 @@ def create(doc_type):
 @app.route('/customers', methods=['GET', 'POST'])
 def customers():
     if request.method == 'POST': data_store['customers'].append({'n': request.form['n'], 'm': request.form['m']})
-    # Simple list view
-    return render_template_string(LAYOUT.replace('{% block content %}{% endblock %}', "<h3>Customers</h3><form method='post'><input name='n' placeholder='Name'><input name='m' placeholder='Mobile'><button>Add</button></form>"), customers_json="[]")
+    c_list = "".join([f"<li class='list-group-item'>{c['n']} - {c['m']}</li>" for c in data_store['customers']])
+    return render_template_string(LAYOUT.replace('{% block content %}{% endblock %}', f"<h3>Customers</h3><form method='post' class='mb-3'><input name='n' placeholder='Name' class='form-control mb-2'><input name='m' placeholder='Mobile' class='form-control mb-2'><button class='btn btn-success'>Add</button></form><ul class='list-group'>{c_list}</ul>"), customers_json="[]")
 
 @app.route('/products', methods=['GET', 'POST'])
 def products():
     if request.method == 'POST': data_store['products'].append(request.form['p'])
-    return render_template_string(LAYOUT.replace('{% block content %}{% endblock %}', "<h3>Products</h3><form method='post'><input name='p'><button>Add</button></form>"), customers_json="[]")
+    p_list = "".join([f"<li class='list-group-item'>{p}</li>" for p in data_store['products']])
+    return render_template_string(LAYOUT.replace('{% block content %}{% endblock %}', f"<h3>Products</h3><form method='post' class='mb-3'><input name='p' placeholder='Product Name' class='form-control mb-2'><button class='btn btn-primary'>Add</button></form><ul class='list-group'>{p_list}</ul>"), customers_json="[]")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
